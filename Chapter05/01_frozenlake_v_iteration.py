@@ -8,9 +8,6 @@ ENV_NAME = "FrozenLake-v0"
 GAMMA = 0.9
 TEST_EPISODES = 20
 
-# Value function S -> R
-# Q function SxA -> R
-
 class Agent:
     def __init__(self):
         self.env = gym.make(ENV_NAME, is_slippery=True)
