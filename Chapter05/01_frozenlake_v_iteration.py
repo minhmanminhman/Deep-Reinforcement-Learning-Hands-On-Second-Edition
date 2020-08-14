@@ -8,10 +8,12 @@ ENV_NAME = "FrozenLake-v0"
 GAMMA = 0.9
 TEST_EPISODES = 20
 
+# Value function S -> R
+# Q function SxA -> R
 
 class Agent:
     def __init__(self):
-        self.env = gym.make(ENV_NAME)
+        self.env = gym.make(ENV_NAME, is_slippery=True)
         self.state = self.env.reset()
         self.rewards = collections.defaultdict(float)
         self.transits = collections.defaultdict(
@@ -24,8 +26,7 @@ class Agent:
             new_state, reward, is_done, _ = self.env.step(action)
             self.rewards[(self.state, action, new_state)] = reward
             self.transits[(self.state, action)][new_state] += 1
-            self.state = self.env.reset() \
-                if is_done else new_state
+            self.state = self.env.reset() if is_done else new_state
 
     def calc_action_value(self, state, action):
         target_counts = self.transits[(state, action)]
@@ -46,10 +47,11 @@ class Agent:
                 best_action = action
         return best_action
 
-    def play_episode(self, env):
+    def play_episode(self, env, is_render=False):
         total_reward = 0.0
         state = env.reset()
         while True:
+            if is_render: env.render()
             action = self.select_action(state)
             new_state, reward, is_done, _ = env.step(action)
             self.rewards[(state, action, new_state)] = reward
@@ -71,6 +73,7 @@ class Agent:
 
 if __name__ == "__main__":
     test_env = gym.make(ENV_NAME)
+    # test_env = gym.wrappers.Monitor(test_env, "recording", force=True)
     agent = Agent()
     writer = SummaryWriter(comment="-v-iteration")
 
@@ -87,10 +90,11 @@ if __name__ == "__main__":
         reward /= TEST_EPISODES
         writer.add_scalar("reward", reward, iter_no)
         if reward > best_reward:
-            print("Best reward updated %.3f -> %.3f" % (
-                best_reward, reward))
+            print("Best reward updated %.3f -> %.3f" % (best_reward, reward))
             best_reward = reward
         if reward > 0.80:
             print("Solved in %d iterations!" % iter_no)
             break
+    reward = agent.play_episode(test_env, is_render=True)
+    print(reward)
     writer.close()

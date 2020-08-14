@@ -34,10 +34,11 @@ class Agent:
                 best_action = action
         return best_action
 
-    def play_episode(self, env):
+    def play_episode(self, env, is_render=False):
         total_reward = 0.0
         state = env.reset()
         while True:
+            if is_render: env.render()
             action = self.select_action(state)
             new_state, reward, is_done, _ = env.step(action)
             self.rewards[(state, action, new_state)] = reward
@@ -88,3 +89,5 @@ if __name__ == "__main__":
             print("Solved in %d iterations!" % iter_no)
             break
     writer.close()
+    reward = agent.play_episode(test_env, is_render=True)
+    print(reward)
